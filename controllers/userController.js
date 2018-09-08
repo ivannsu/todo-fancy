@@ -4,6 +4,44 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
 module.exports = {
+  checkLogin: (req, res) => {
+    let token = req.headers.token;
+
+    if(!token) {
+      res.status(401).json({
+        error: 'You are not authenticated'
+      });
+    } else {
+      let decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+      let input = {
+        email: decoded.email,
+        loginType: decoded.loginType
+      }
+
+      User.findOne(input)
+      .then(user => {
+        if(!user) {
+          res.status(401).json({
+            message: 'please sign up first'
+          });
+        } else {
+          res.status(200).json({
+            message: 'authenticated',
+            user: {
+              email: user.email,
+              loginType: user.loginType
+            }
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).json({
+          error: err.message
+        });
+      });
+    }
+  },
+
   signin: (req, res) => {
     let input = {
       email: req.body.email,
