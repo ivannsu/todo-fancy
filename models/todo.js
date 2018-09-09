@@ -14,10 +14,6 @@ const todoSchema = new Schema({
   },
   dueDate: {
     type: Date
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
   }
 }, {
   timestamps: true

@@ -11,7 +11,10 @@ const userSchema = new Schema({
   },
   loginType: {
     type: String
-  }
+  },
+  todos: [
+    {type: Schema.Types.ObjectId, ref: 'Todo'}
+  ]
 }, {
   timestamps: true
 });
