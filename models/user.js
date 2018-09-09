@@ -24,13 +24,10 @@ userSchema.statics.findOneAndCreate = function(condition, input) {
     this.findOne(condition)
     .then(user => {
       if(!user) {
-        return this.create(input);
+        resolve(this.create(input));
       } else {
         reject(false);
       }
-    })
-    .then(newUser => {
-      resolve(user);
     })
     .catch(err => {
       reject(err);
