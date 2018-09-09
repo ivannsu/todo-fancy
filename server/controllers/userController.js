@@ -59,7 +59,7 @@ module.exports = {
       } else {
         if(user.loginType === 'fb') {
           res.status(400).json({
-            message: 'You already sign in using facebook'
+            message: 'You are registered using facebook'
           });
         } else {
           let token = jwt.sign({
