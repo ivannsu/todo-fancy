@@ -24,12 +24,13 @@ module.exports = {
       .then(user => {
         if(!user) {
           res.status(401).json({
-            message: 'please sign up first'
+            message: 'invalid token'
           });
         } else {
           res.status(200).json({
             message: 'authenticated',
             user: {
+              id: user._id,
               email: user.email,
               loginType: user.loginType
             }
@@ -54,7 +55,7 @@ module.exports = {
     .then(user => {
       if(!user) {
         res.status(401).json({
-          message: 'please sign up first'
+          message: 'username or password wrong'
         });
       } else {
         if(user.loginType === 'fb') {
@@ -63,6 +64,7 @@ module.exports = {
           });
         } else {
           let token = jwt.sign({
+            id: user._id,
             email: user.email,
             loginType: user.loginType
           }, process.env.JWT_SECRET_KEY);
@@ -129,6 +131,7 @@ module.exports = {
           User.create(input)
           .then(newUser => {
             let token = jwt.sign({
+              id: newUser._id,
               email: newUser.email,
               loginType: newUser.loginType
             }, process.env.JWT_SECRET_KEY);
@@ -146,6 +149,7 @@ module.exports = {
         } else if(user.loginType === 'fb') {
 
           let token = jwt.sign({
+            id: user._id,
             email: user.email,
             loginType: user.loginType
           }, process.env.JWT_SECRET_KEY);

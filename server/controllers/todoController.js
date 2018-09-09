@@ -9,7 +9,7 @@ module.exports = {
     let input = {
       name: req.body.name,
       description: req.body.description,
-      dueDate: dueDate(3)
+      dueDate: req.body.dueDate
     }
 
     User.findById(userId)
@@ -52,9 +52,12 @@ module.exports = {
   },
 
   findByUser: (req, res) => {
-    let id = createObjectId(req.body.userId);
+    let id = createObjectId(req.params.userId);
 
-    User.findOne({_id: id}).populate('todos')
+    User.findOne({_id: id}).populate({
+      path: 'todos',
+      match: { status: false }
+    })
     .then(todos => {
       res.status(200).json({
         message: 'success get all todos',
@@ -69,12 +72,30 @@ module.exports = {
     });
   },
 
+  findById: (req, res) => {
+    let todoId = createObjectId(req.params.todoId);
+
+    Todo.findById({ _id: todoId })
+    .then(todo => {
+      res.status(200).json({
+        message: 'success get todo by id',
+        todo
+      });
+    })
+    .catch(err => {
+      res.status(500).json({
+        message: 'failed get todo',
+        error: err.message
+      });
+    })
+  },
+
   update: (req, res) => {
     let todoId = createObjectId(req.params.todoId);
     let input = {
       name: req.body.name,
       description: req.body.description,
-      dueDate: dueDate(3)
+      dueDate: req.body.dueDate
     }
 
     Todo.findByIdAndUpdate({_id: todoId}, input)
@@ -82,6 +103,23 @@ module.exports = {
       res.status(200).json({
         message: 'success update todo',
         info: input
+      });
+    })
+    .catch(err => {
+      res.status(500).json({
+        error: err.message
+      })
+    });
+  },
+
+  finish: (req, res) => {
+    let todoId = createObjectId(req.params.todoId);
+
+    Todo.findByIdAndUpdate({_id: todoId}, { status: true })
+    .then(oldTodo => {
+      res.status(200).json({
+        message: 'success finish todo',
+        todo: oldTodo
       });
     })
     .catch(err => {
