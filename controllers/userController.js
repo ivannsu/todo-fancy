@@ -2,6 +2,8 @@ require('dotenv').config()
 
 const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const crypt = require('../helpers/crypt');
 
 module.exports = {
   checkLogin: (req, res) => {
@@ -45,7 +47,7 @@ module.exports = {
   signin: (req, res) => {
     let input = {
       email: req.body.email,
-      password: req.body.password
+      password: crypt(req.body.password)
     }
 
     User.findOne(input)
@@ -76,7 +78,7 @@ module.exports = {
   signup: (req, res) => {
     let input = {
       email: req.body.email,
-      password: req.body.password,
+      password: crypt(req.body.password),
       loginType: 'app'
     }
 
@@ -97,6 +99,23 @@ module.exports = {
           error: err.message
         });
       }
+    });
+  },
+
+  fbSignIn: (req, res) => {
+    let fbtoken = req.headers.fbtoken;
+
+    axios({
+      method: 'get',
+      url: `https://graph.facebook.com/me?fields=id,name,email&access_token=${fbtoken}`
+    })
+    .then(fbInfo => {
+      
+    })
+    .catch(err => {
+      res.status(500).json({
+        error: err.message
+      });
     });
   }
 }
