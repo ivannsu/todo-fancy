@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="google-signin-client_id" content="711217109606-ir5671g6pnsdgn1hmu15lnmse93vh27r.apps.googleusercontent.com">
   <title>Todo Fancy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -11,16 +12,17 @@
     src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
     crossorigin="anonymous"></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
   <style>
   .social-btn {
     width: auto;
-    padding: 12px;
+    padding: 9.2px;
     border: none;
     border-radius: 4px;
     margin: 5px 0;
     opacity: 0.85;
     display: inline-block;
-    font-size: 17px;
+    font-size: 16px;
     line-height: 20px;
     text-decoration: none;
     cursor: pointer;
@@ -119,11 +121,12 @@
     
         <p>
           <button type="button" id="signin-btn" class="btn btn-primary">Sign In</button> 
-          <div class="social-btn fb" onclick="facebookLogin()">
+          <button type="button" class="social-btn fb" onclick="facebookLogin()">
             <span class="fa fa-facebook-f"></span> Facebook
             <!-- <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
             </fb:login-button> -->
-          </div>
+          </button>
+          <div class="g-signin2" data-onsuccess="onSignIn"></div>
         </p>
       </div>
       <div class="col-lg-4"></div>
@@ -162,6 +165,7 @@
           <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
             Add Todo
           </button>
+          <button type="button" onclick="logout()" class="btn btn-danger">Logout</button>
         </p>
     
         <!-- Modal -->
@@ -215,10 +219,32 @@
 
   <script>
     const baseurl = 'http://localhost:3000';
-    const userId = localStorage.getItem('id');
+    let userId = localStorage.getItem('id');
+
+    checkLogin();
+
+    function onSignIn(googleUser) {
+      let profile = googleUser.getBasicProfile();
+      let gEmail = profile.getEmail();
+
+      $.ajax({
+        method: 'POST',
+        url: 'http://localhost:3000/users/signin/google',
+        body: {
+          email: gEmail
+        }
+      })
+      .done(response => {
+        localStorage.setItem('token', response.token);
+        checkLogin();
+      })
+      .fail(err => {
+        $('#fb-message').text(err.responseJSON.message);
+        $('#fb-info').show();
+      });
+    }
 
     $(document).ready(function() {
-      checkLogin();
       showTodo();
 
       $('#todo-submit').click(function() {
@@ -331,8 +357,18 @@
       });
     });
 
+    function logout() {
+      localStorage.setItem('id', '');
+      localStorage.setItem('email', '');
+      localStorage.setItem('loginType', '');
+      localStorage.setItem('token', '');
+
+      checkLogin();
+    }
+
     function showTodo() {
       let content = $('#todo-content');
+      let userId = localStorage.getItem('id');
 
       $.ajax({
         method: 'GET',
@@ -481,6 +517,10 @@
           $('#signup-message').hide();
           $('#todo-message').hide();
           $('#todo-section').show();
+
+          userId = localStorage.getItem('id');
+
+          showTodo();
         })
         .fail(err => {
           console.log(err);
