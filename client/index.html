@@ -5,10 +5,38 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title>Todo Fancy</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <script
     src="https://code.jquery.com/jquery-3.3.1.min.js"
     integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
     crossorigin="anonymous"></script>
+  <style>
+  .social-btn {
+    width: auto;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    margin: 5px 0;
+    opacity: 0.85;
+    display: inline-block;
+    font-size: 17px;
+    line-height: 20px;
+    text-decoration: none;
+    cursor: pointer;
+    display: inline;
+  }
+
+  .fb {
+    background-color: #3B5998;
+    color: white;
+  }
+
+  .google {
+    background-color: #dd4b39;
+    color: white;
+  }
+  </style>
 </head>
 <body>
   
@@ -30,14 +58,22 @@
        fjs.parentNode.insertBefore(js, fjs);
      }(document, 'script', 'facebook-jssdk'));
 
-      function checkLoginState() {
-        FB.getLoginStatus(function(response) {
+      // function checkLoginState() {
+      //   FB.getLoginStatus(function(response) {
+      //     statusChangeCallback(response);
+      //   });
+      // }
+
+      function facebookLogin() {
+        FB.login(function(response) {
           statusChangeCallback(response);
-        });
+        }, {scope: 'public_profile,email'});
       }
 
       function statusChangeCallback(response) {
         let token = response.authResponse.accessToken;
+
+        $('#fb-info').hide();
 
         $.ajax({
           method: 'POST',
@@ -47,17 +83,411 @@
           }
         })
         .done(response => {
-          console.log(response);
+          localStorage.setItem('token', response.token);
+          checkLogin();
         })
         .fail(err => {
-          console.log(err.responseJSON);
+          $('#fb-message').text(err.responseJSON.message);
+          $('#fb-info').show();
         });
       }
 
   </script>
 
-  <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-  </fb:login-button>
+  <div class="container" style="padding-top: 50px;">
+    <div class="row" id="fb-info">
+      <div class="col-lg-4"></div>
+      <div class="col-lg-4">
+        <div class="alert alert-danger" id="fb-message"></div>
+      </div>
+      <div class="col-lg-4"></div>
+    </div>
 
+    <div class="row" id="signin-section">
+      <div class="col-lg-4"></div>
+      <div class="col-lg-4">
+        <h2>Sign In</h2>
+        <div class="alert alert-danger" id="signin-message"></div>
+
+        <p>Email</p>
+        <p>
+          <input type="text" id="signin-email" class="form-control">
+        </p>
+    
+        <p>Password</p>
+        <p><input type="password" id="signin-password" class="form-control"></p>
+    
+        <p>
+          <button type="button" id="signin-btn" class="btn btn-primary">Sign In</button> 
+          <div class="social-btn fb" onclick="facebookLogin()">
+            <span class="fa fa-facebook-f"></span> Facebook
+            <!-- <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
+            </fb:login-button> -->
+          </div>
+        </p>
+      </div>
+      <div class="col-lg-4"></div>
+    </div>
+    <div class="row" id="signup-section">
+      <div class="col-lg-4"></div>
+      <div class="col-lg-4">
+        <h2>Sign Up</h2>
+        <div class="alert alert-danger" id="signup-message"></div>
+
+        <p>Email</p>
+        <p>
+          <input type="text" id="signup-email" class="form-control">
+        </p>
+    
+        <p>Password</p>
+        <p><input type="password" id="signup-password" class="form-control"></p>
+    
+        <p>Password Confirm <span id="signup-invalid" style="color: red"> - Password not match</span></p>
+        <p><input type="password" id="signup-passwordConfirm" class="form-control"></p>
+    
+        <p>
+          <button type="button" id="signup-btn" class="btn btn-primary">Sign Up</button>
+        </p>
+      </div>
+      <div class="col-lg-4"></div>
+    </div>
+
+    <div class="row" id="todo-section">
+
+      <div class="col-lg-12">
+        <h1>Todo App</h1>
+
+        <p>
+        <!-- Button trigger modal -->
+          <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
+            Add Todo
+          </button>
+        </p>
+    
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add Todo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Name</p>
+                <p><input type="text" id="todo-name" class="form-control"></p>
+        
+                <p>Description</p>
+                <p><input type="text" id="todo-description" class="form-control"></p>
+        
+                <p>Set Date</p>
+                <p><input type="date" id="todo-date" class="form-control"></p>
+
+                <input type="hidden" id="todo-id">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="todo-edit" class="btn btn-primary" style="display: none">Edit Todo</button>
+                <button type="button" id="todo-submit" class="btn btn-primary">Add Todo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-warning" id="todo-message">
+           
+        </div>
+
+        <table class="table" id="todo-container">
+          <thead class="thead-light">
+            <th>Name</th>
+            <th>Description</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th></th>
+          </thead>
+          <tbody id="todo-content"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const baseurl = 'http://localhost:3000';
+    const userId = localStorage.getItem('id');
+
+    $(document).ready(function() {
+      checkLogin();
+      showTodo();
+
+      $('#todo-submit').click(function() {
+        let name = $('#todo-name');
+        let description = $('#todo-description');
+        let dueDate = $('#todo-date');
+
+        $.ajax({
+          method: 'POST',
+          url: `${baseurl}/todos`,
+          data: {
+            name: name.val(), 
+            description: description.val(), 
+            dueDate: new Date(dueDate.val()),
+            userId: userId
+          }
+        })
+        .done(response => {
+          name.val('');
+          description.val('');
+          dueDate.val('');
+          $('#exampleModal').modal('hide');
+          $('#todo-content').text('');
+          showTodo();
+        })
+        .fail(err => {
+          console.log(err);
+        });
+      });
+
+      $('#todo-edit').click(function() {
+        let name = $('#todo-name');
+        let description = $('#todo-description');
+        let dueDate = $('#todo-date');
+        let todoId = $('#todo-id');
+        
+        $.ajax({
+          method: 'PUT',
+          url: `${baseurl}/todos/${todoId.val()}`,
+          data: {
+            name: name.val(), 
+            description: description.val(), 
+            dueDate: new Date(dueDate.val()),
+          }
+        })
+        .done(response => {
+          name.val('');
+          description.val('');
+          dueDate.val('');
+
+          $('#todo-content').text('');
+          $('#exampleModal').modal('hide');
+          $('#todo-edit').hide();
+          $('#todo-submit').show();
+          showTodo();
+        })
+        .fail(err => {
+          console.log(err);
+        });
+
+      });
+
+      $('#signin-btn').click(function() {
+        let email = $('#signin-email').val();
+        let password = $('#signin-password').val();
+
+        $.ajax({
+          method: 'POST',
+          url: `${baseurl}/users/signin`,
+          data: {
+            email: email,
+            password: password
+          }
+        })
+        .done(response => {
+          localStorage.setItem('token', response.token);
+          checkLogin();
+        })
+        .fail(err => {
+          $('#signin-message').text(err.responseJSON.message);
+          $('#signin-message').show();
+        });
+      });
+
+      $('#signup-btn').click(function() {
+        let email = $('#signup-email').val();
+        let password = $('#signup-password').val();
+        let passwordConfirm = $('#signup-passwordConfirm').val();
+
+        if(password !== passwordConfirm) {
+          $('#signup-invalid').show(); 
+        } else {
+          $('#signup-invalid').hide(); 
+          $.ajax({
+            method: 'POST',
+            url: `${baseurl}/users/signup`,
+            data: {
+              email: email,
+              password: password
+            }
+          })
+          .done(response => {
+            checkLogin();
+          })
+          .fail(err => {
+            $('#signup-message').text(err.responseJSON.message);
+            $('#signup-message').show();
+          });
+        }
+      });
+    });
+
+    function showTodo() {
+      let content = $('#todo-content');
+
+      $.ajax({
+        method: 'GET',
+        url: `${baseurl}/todos/${userId}`,
+      })
+      .done(response => {
+        let todos = response.data.todos;
+
+        if(todos.length === 0) {
+          $('#todo-container').hide();
+          $('#todo-message').html(`
+            No Todo today <a href="javascript:void(0)" data-toggle="modal" data-target="#exampleModal">do something</a>
+          `);
+          $('#todo-message').show();
+        } else {
+          $('#todo-container').show();
+          $('#todo-message').text('');
+          $('#todo-message').hide();
+
+          content.text('');
+
+          $.each(todos, function(i, todo) {
+            content.append(`
+              <tr>
+                <td>${todo.name}</td>
+                <td>${todo.description}</td>
+                <td>${dateFormat(todo.dueDate)}</td>
+                <td>
+                  <a href="javascript:void(0)" onclick="finishTodo('${todo._id}')">Finish</a>  
+                </td>
+                <td>
+                  <a href="javascript:void(0)" onclick="editTodo('${todo._id}')">Edit</a>  
+                  <a href="javascript:void(0)" onclick="deleteTodo('${todo._id}')">Delete</a>
+                </td>
+              </tr>
+            `);
+          });
+        }
+      })
+      .fail(err => {
+        console.log(err);
+      });
+    }
+
+    function dateFormat(dateInput) {
+      let months = [
+        'January', 'February', 'March', 
+        'April', 'May', 'June', 'July', 
+        'August', 'September', 'October', 
+        'November', 'December'
+      ];
+
+      let now = new Date(dateInput);
+      let date = now.getDate();
+      let month = months[now.getMonth()];
+      let year = now.getFullYear();
+
+      return `${date} ${month} ${year}`;
+    }
+
+    function finishTodo(id) {
+      $.ajax({
+        method: 'PUT',
+        url: `${baseurl}/todos/${id}/finish`
+      })
+      .done(response => {
+        $('#todo-content').text('');
+        showTodo();
+      })
+      .fail(err => {
+        console.log(err);
+      });
+    }
+
+    function editTodo(id) {
+      $.ajax({
+        method: 'GET',
+        url: `${baseurl}/todos/${id}/detail`
+      })
+      .done(response => {
+        let todo = response.todo;
+        let name = $('#todo-name');
+        let description = $('#todo-description');
+        let dueDate = $('#todo-date');
+
+        name.val(todo.name);
+        description.val(todo.description);
+        dueDate.val('');
+
+        $('#todo-id').val(id);
+        $('#exampleModal').modal('show');
+        $('#todo-edit').show();
+        $('#todo-submit').hide();
+      })
+      .fail(err => {
+        console.log(err);
+      });
+    }
+
+    function deleteTodo(id) {
+      $.ajax({
+        method: 'DELETE',
+        url: `${baseurl}/todos/${id}`,
+        data: {
+          userId
+        }
+      })
+      .done(response => {
+        $('#todo-content').text('');
+        showTodo();
+      })
+      .catch(err => {
+        console.log(err.responseJSON.message);
+      });
+    }
+
+    function checkLogin() {
+      let token = localStorage.getItem('token');
+
+      if(!token) {
+        $('#fb-info').hide();
+        $('#signin-message').hide();
+        $('#signup-section').hide();
+        $('#signup-invalid').hide();
+        $('#signup-message').hide();
+        $('#todo-section').hide();
+        $('#signin-section').show();
+      } else {
+
+        $.ajax({
+          url: `${baseurl}/users/checklogin`,
+          method: 'GET',
+          headers: {
+            token
+          }
+        })
+        .done(response => {
+          localStorage.setItem('id', response.user.id);
+          localStorage.setItem('email', response.user.email);
+          localStorage.setItem('loginType', response.user.loginType);
+          $('#fb-info').hide();
+          $('#signin-section').hide();
+          $('#signin-message').hide();
+          $('#signup-section').hide();
+          $('#signup-invalid').hide();
+          $('#signup-message').hide();
+          $('#todo-message').hide();
+          $('#todo-section').show();
+        })
+        .fail(err => {
+          console.log(err);
+        });
+      }
+    }
+  </script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </body>
 </html>
