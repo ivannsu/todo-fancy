@@ -24,12 +24,13 @@ module.exports = {
       .then(user => {
         if(!user) {
           res.status(401).json({
-            message: 'please sign up first'
+            message: 'invalid token'
           });
         } else {
           res.status(200).json({
             message: 'authenticated',
             user: {
+              id: user._id,
               email: user.email,
               loginType: user.loginType
             }
@@ -54,15 +55,20 @@ module.exports = {
     .then(user => {
       if(!user) {
         res.status(401).json({
-          message: 'please sign up first'
+          message: 'username or password wrong'
         });
       } else {
         if(user.loginType === 'fb') {
           res.status(400).json({
-            message: 'You already sign in using facebook'
+            message: 'You are registered using facebook'
+          });
+        } else if(user.loginType === 'google') {
+          res.status(400).json({
+            message: 'You are registered using google'
           });
         } else {
           let token = jwt.sign({
+            id: user._id,
             email: user.email,
             loginType: user.loginType
           }, process.env.JWT_SECRET_KEY);
@@ -108,6 +114,61 @@ module.exports = {
     });
   },
 
+  googleSignIn: (req, res) => {
+    let input = {
+      email: req.body.email,
+      password: crypt('123'),
+      loginType: 'google'
+    }
+
+    console.log(input.email, '<================= GOOGE MAIL');
+
+    User.findOne({email: input.email})
+    .then(user => {
+      if(!user) {
+        User.create(input)
+        .then(newUser => {
+          let token = jwt.sign({
+            id: newUser._id,
+            email: newUser.email,
+            loginType: newUser.loginType
+          }, process.env.JWT_SECRET_KEY);
+
+          res.status(200).json({
+            message: 'success sign in with google',
+            token
+          });
+        })
+        .catch(err => {
+          res.status(500).json({
+            message: err.message
+          });
+        });
+      } else if(user.loginType === 'google') {
+
+        let token = jwt.sign({
+          id: user._id,
+          email: user.email,
+          loginType: user.loginType
+        }, process.env.JWT_SECRET_KEY);
+
+        res.status(200).json({
+          message: 'success sign in with google',
+          token
+        });
+      } else if(user.loginType === 'app') {
+        res.status(400).json({
+          message: 'You are registered with regular sign in'
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({
+        message: err.message
+      });
+    });
+  },
+
   fbSignIn: (req, res) => {
     let fbtoken = req.headers.fbtoken;
 
@@ -129,6 +190,7 @@ module.exports = {
           User.create(input)
           .then(newUser => {
             let token = jwt.sign({
+              id: newUser._id,
               email: newUser.email,
               loginType: newUser.loginType
             }, process.env.JWT_SECRET_KEY);
@@ -146,6 +208,7 @@ module.exports = {
         } else if(user.loginType === 'fb') {
 
           let token = jwt.sign({
+            id: user._id,
             email: user.email,
             loginType: user.loginType
           }, process.env.JWT_SECRET_KEY);
