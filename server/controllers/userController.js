@@ -11,7 +11,7 @@ module.exports = {
 
     if(!token) {
       res.status(401).json({
-        error: 'You are not authenticated'
+        message: 'You are not authenticated'
       });
     } else {
       let decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
@@ -38,7 +38,7 @@ module.exports = {
       })
       .catch(err => {
         res.status(500).json({
-          error: err.message
+          message: err.message
         });
       });
     }
@@ -57,20 +57,26 @@ module.exports = {
           message: 'please sign up first'
         });
       } else {
-        let token = jwt.sign({
-          email: user.email,
-          loginType: user.loginType
-        }, process.env.JWT_SECRET_KEY);
-
-        res.status(200).json({
-          message: 'sign in successfully',
-          token: token
-        });
+        if(user.loginType === 'fb') {
+          res.status(400).json({
+            message: 'You already sign in using facebook'
+          });
+        } else {
+          let token = jwt.sign({
+            email: user.email,
+            loginType: user.loginType
+          }, process.env.JWT_SECRET_KEY);
+  
+          res.status(200).json({
+            message: 'sign in successfully',
+            token: token
+          });
+        }
       }
     })
     .catch(err => {
       res.status(500).json({
-        error: err.message
+        message: err.message
       });
     });
   },
@@ -91,12 +97,12 @@ module.exports = {
     })
     .catch(err => {
       if(!err) {
-        res.status(500).json({
-          error: 'email already used'
+        res.status(400).json({
+          message: 'email already used'
         });
       } else {
         res.status(500).json({
-          error: err.message
+          message: err.message
         });
       }
     });
@@ -109,12 +115,60 @@ module.exports = {
       method: 'get',
       url: `https://graph.facebook.com/me?fields=id,name,email&access_token=${fbtoken}`
     })
-    .then(fbInfo => {
-      
+    .then(response => {
+      let fbInfo = response.data
+      let input = {
+        email: fbInfo.email,
+        password: crypt('123'),
+        loginType: 'fb'
+      }
+  
+      User.findOne({email: input.email})
+      .then(user => {
+        if(!user) {
+          User.create(input)
+          .then(newUser => {
+            let token = jwt.sign({
+              email: newUser.email,
+              loginType: newUser.loginType
+            }, process.env.JWT_SECRET_KEY);
+
+            res.status(200).json({
+              message: 'success sign in with facebook',
+              token
+            });
+          })
+          .catch(err => {
+            res.status(500).json({
+              message: err.message
+            });
+          });
+        } else if(user.loginType === 'fb') {
+
+          let token = jwt.sign({
+            email: user.email,
+            loginType: user.loginType
+          }, process.env.JWT_SECRET_KEY);
+
+          res.status(200).json({
+            message: 'success sign in with facebook',
+            token
+          });
+        } else if(user.loginType === 'app') {
+          res.status(400).json({
+            message: 'You are registered with regular sign in'
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).json({
+          message: err.message
+        });
+      });
     })
     .catch(err => {
       res.status(500).json({
-        error: err.message
+        message: err.message
       });
     });
   }
