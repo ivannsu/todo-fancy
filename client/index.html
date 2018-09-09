@@ -41,16 +41,16 @@
 
         $.ajax({
           method: 'POST',
-          url: '',
-          body: {
-
+          url: 'http://localhost:3000/users/signin/fb',
+          headers: {
+            fbtoken: token
           }
         })
         .done(response => {
           console.log(response);
         })
         .fail(err => {
-          console.log(err);
+          console.log(err.responseJSON);
         });
       }
 
