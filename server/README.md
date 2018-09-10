@@ -120,7 +120,7 @@ Portofolio Project
 ----
 * URL
 
-  /todos
+  /todos/:userId
 
 * Method
 
@@ -141,6 +141,35 @@ Portofolio Project
   ]
   ```
 
+### Todo Detail
+----
+* URL
+
+  /todos/:todoId
+
+* Method
+
+  GET
+
+* Output example
+  ```
+  {
+    email: 'johndoe@mail.com',
+    loginType: 'app',
+    todos: [
+      {
+        name: 'do something',
+        description: 'something',
+        dueDate: '10-09-2018 13:53:21',
+        status: false,
+        createdAt: '09-09-2018 13:53:21',
+        updatedAt: '09-09-2018 13:53:21'
+      }
+    ]
+  }
+  ```
+
+
 ### Update Todo
 ----
 * URL
@@ -149,7 +178,7 @@ Portofolio Project
 
 * Method
 
-  UPDATE
+  PUT
 
 * Input example
   ```
@@ -169,6 +198,23 @@ Portofolio Project
     status: false,
     createdAt: '09-09-2018 13:53:21',
     updatedAt: '10-09-2018 13:53:21'
+  }
+  ```
+
+### Finish Todo
+----
+* URL
+
+  /todos/:todoId/finish
+
+* Method
+
+  PUT
+
+* Output example
+  ```
+  {
+    message: 'success finish todo'
   }
   ```
 
